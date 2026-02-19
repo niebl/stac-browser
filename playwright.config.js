@@ -64,10 +64,20 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: process.env.CI ? undefined : {
-    command: 'npm start',
-    url: 'http://localhost:8080',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
-  },
+  webServer: [ 
+    {
+      command: 'npm start',
+      name: 'Frontend',
+      url: 'http://localhost:8080',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120 * 1000,
+    },
+    {
+      command: 'npm run mock-server',
+      name: 'Mock Stac-Backend',
+      url: 'http://localhost:8000',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120 * 1000,
+    }
+  ]
 });
