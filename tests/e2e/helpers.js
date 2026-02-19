@@ -1,2 +1,4 @@
 export const HOME_PATH = process.env.CI ? '/stac-browser/' : '/';
-export const CDSE_PATH = process.env.CI ? '/stac-browser/external/openeo.dataspace.copernicus.eu/openeo/1.2' : '/external/openeo.dataspace.copernicus.eu/openeo/1.2'
+
+const catalog_path = "http://localhost:8000/catalog.json"
+export const CATALOG_PATH = process.env.CI ? `/stac-browser/external/${catalog_path}` : `/external/${catalog_path}`
