@@ -1,1 +1,2 @@
 export const HOME_PATH = process.env.CI ? '/stac-browser/' : '/';
+export const CDSE_PATH = process.env.CI ? '/stac-browser/external/openeo.dataspace.copernicus.eu/openeo/1.2' : '/external/openeo.dataspace.copernicus.eu/openeo/1.2'
