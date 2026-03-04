@@ -1,13 +1,11 @@
 import { expect, test as testBase } from "@playwright/test";
 import { defineNetworkFixture } from '@msw/playwright';
-import fs from 'fs';
-import path from 'path';
+import { catalogHandler, searchHandler, searchRootHandler } from "../mocks/handlers";
 
 export const HOME_PATH = "/";
 export const SEARCH_PATH = "/search/external/earth-search.aws.test.com/v1?.language=en";
 
 const SEARCH_API_URL = "https://earth-search.aws.test.com/v1/search";
-
 const API_ROOT_URL = "https://earth-search.aws.test.com/v1";
 const API_COLLECTIONS_URL = "https://earth-search.aws.test.com/v1/collections";
 
@@ -27,35 +25,11 @@ export const test = testBase.extend({
       })
 
       // Intercept mock-catalog.api
-      await context.route('https://mock-catalog.api/api/stac/v1/**', async (route) => {
-        const request = route.request();
-        
-        // 1. Handle CORS Preflights automatically
-        if (request.method() === 'OPTIONS') {
-          return route.fulfill({
-            status: 200,
-            headers: { 'Access-Control-Allow-Origin': '*' }
-          });
-        }
+      await context.route('https://mock-catalog.api/api/stac/v1/**', catalogHandler);
 
-        // 2. Serve the local JSON files automatically
-        try {
-          const url = new URL(request.url());
-          const subpath = url.pathname.replace('/api/stac/v1/', '') || 'catalog.json';
-          const filePath = path.resolve('./tests/mocks/example_catalog/', subpath);
-          
-          const fileBuffer = fs.readFileSync(filePath, 'utf-8');
-          
-          await route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            headers: { 'Access-Control-Allow-Origin': '*' },
-            body: fileBuffer
-          });
-        } catch (error) {
-          await route.fulfill({ status: 404, body: JSON.stringify({ error: 'Not found' }) });
-        }
-      });
+      // Intercept search API
+      await context.route('https://search.api/search', searchHandler);
+      await context.route('https://search.api/', searchRootHandler);
 
       await network.enable()
       await use(network)

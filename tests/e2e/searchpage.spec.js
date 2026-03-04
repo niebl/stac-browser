@@ -346,4 +346,23 @@ test.describe('STAC Browser Search page', () => {
       expect(body.limit).toBe(99);
     });
   });
+
+  test('search with item limit should return limited number of items', async ({ page }) => {
+    await mockApiRootAndCollections(page);
+    await page.goto(SEARCH_PATH);
+
+    await test.step('Set limit of 2 items per', async () => {
+      const limitInput = page.getByLabel(/items per page/i);
+      await limitInput.fill('2');
+    });
+
+    await test.step('Submit search and verify the returned list is limited to 2 items', async () => {
+      const submitButton = page.getByRole('button', { name: /submit/i });;
+      await submitButton.click();
+
+      const resultList = await page.locator('.card-grid').locator('a.stac-link').count(2);
+      expect(resultList).toBe(2);
+    });
+  });
+
 });
