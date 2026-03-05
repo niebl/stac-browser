@@ -275,6 +275,72 @@ export async function mockApiCollection(worker, {
   await worker.use(...handlers);
 }
 
+// ─── Pagination handlers (for search page) ──────────────────────────────────
+
+/**
+ * Build MSW handlers for a barebones STAC API root, containing a search endpoint.
+ *
+ * The search endpoint uses a search handler that procides a paginated list of STAC-
+ * items as well as controls
+ * The fixtures use DEFAULT_API_URL; if a different baseUrl is
+ * provided, all URLs in the fixtures are rewritten accordingly.
+ *
+ * @param {object} [options]
+ * @param {string} [options.baseUrl] – origin URL for the mock API
+ * @param {object} [paginationOptions]
+ * @returns TODO
+ */
+export function paginationRootHandlers(
+  { baseUrl = DEFAULT_API_URL } = {},
+  { items = 2, page=1, prev = false, first = false, last = false} = {}
+) {
+  const fixtureDir = path.resolve(
+    fileURLToPath(new URL('../fixtures/api/', import.meta.url)),
+  );
+  const root = JSON.parse(fs.readFileSync(path.join(fixtureDir, 'root.json'), 'utf8'));
+  const collections = JSON.parse(fs.readFileSync(path.join(fixtureDir, 'collections.json'), 'utf8'));
+  
+  // provide search handler with options
+  const searchResult = JSON.parse(fs.readFileSync(path.join(fixtureDir, searchFixture), 'utf8'));
+
+  // If a custom baseUrl is provided, rewrite all URLs in the fixtures
+  const rewrite = (obj) =>
+    baseUrl !== DEFAULT_API_URL
+      ? JSON.parse(JSON.stringify(obj).replaceAll(DEFAULT_API_URL, baseUrl))
+      : obj;
+
+  return [
+    http.get(baseUrl, () => HttpResponse.json(rewrite(root))),
+    http.get(`${baseUrl}/collections`, () => HttpResponse.json(rewrite(collections))),
+    http.post(`${baseUrl}/search`, () => HttpResponse.json(rewrite(searchResult))),
+  ];
+}
+
+
+/**
+ * Search endpoint that returns a paginated collection of items.
+ *
+ * The search endpoint returns a paginated collection of items in JSON format
+ * to the 
+ *
+ * @param {object} [options]
+ * @returns TODO
+ */
+export function paginatedSearchHandler(
+  items = 2, 
+  page = 1, 
+  prev = false, 
+  first = false, 
+  last = false
+){
+  const fixtureDir = path.resolve(
+    fileURLToPath(new URL('../fixtures/api/', import.meta.url)),
+  );
+
+  let sampleItems = JSON.parse(fs.readFileSync(path.join(fixtureDir, '/search-paginated/items.json'), 'utf8'))
+  
+}
+
 // ─── Navigation helpers ─────────────────────────────────────────────────────
 
 /**

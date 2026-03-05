@@ -438,4 +438,43 @@ test.describe('STAC Browser Search page', () => {
       expect(body).toEqual({});
     });
   });
+
+  test('search with item limit should return pages with limited number of items', async ({ page }) => {
+    
+    await page.goto("/search/external/search.api?.language=en");
+
+    await test.step('Set limit of 2 items per', async () => {
+      const limitInput = page.getByLabel(/items per page/i);
+      await limitInput.fill('2');
+    });
+
+    await test.step('Submit search and verify the returned list is limited to 2 items', async () => {
+      const submitButton = page.getByRole('button', { name: /submit/i });
+      await submitButton.click();
+
+      await waitForMapReady(page);
+
+      const resultList = await page.locator('.card-grid').locator('a.stac-link').count(2);
+      expect(resultList).toBe(2);
+    });
+
+    await test.step('Next-buttons should navigate to the next page', async () => {
+      const nextButton = page.getByRole('button').filter({ hasText: 'Next'}).first();
+      //get hrefs of existing items on page 1
+      const itemLinks = page.locator('.card-grid').locator('a.stac-link');
+      const firstPageHrefs = await itemLinks.evaluateAll(links => links.map(link => link.getAttribute('href')));
+      
+      await nextButton.click();
+
+      await waitForMapReady(page);
+
+      //get hrefs of items on page 2
+      const secondPageHrefs = await itemLinks.evaluateAll(links => links.map(link => link.getAttribute('href')));
+
+      //expect the hrefs on page 2 to be different than page 1
+      expect(secondPageHrefs).toHaveLength(2);
+      expect(secondPageHrefs[0]).not.toBe(firstPageHrefs[0]);
+      expect(secondPageHrefs[1]).not.toBe(firstPageHrefs[1]);
+    })
+  });
 });
